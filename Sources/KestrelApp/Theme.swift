@@ -65,6 +65,62 @@ struct Theme {
     }
 }
 
+// MARK: - Motion
+
+/// House motion: critically damped springs (no overshoot) that start from the current
+/// on-screen value, so a new reading mid-animation just re-targets smoothly.
+enum Motion {
+    /// Used for values the user changes (sliders, toggles). Live readings are deliberately
+    /// not animated: they tick every second, and animating them keeps SwiftUI rendering
+    /// the whole dashboard continuously (measured at +12–25% CPU).
+    static let value = Animation.spring(response: 0.3, dampingFraction: 1.0)
+    static let panel = Animation.spring(response: 0.35, dampingFraction: 1.0)
+    static let press = Animation.spring(response: 0.22, dampingFraction: 1.0)
+    static let fade = Animation.easeOut(duration: 0.18)
+}
+
+/// Feedback on press (not release) and on hover, the pointer equivalent of touch-down.
+struct PressableStyle: ButtonStyle {
+    var cornerRadius: CGFloat = 8
+    var hoverFill = true
+    func makeBody(configuration: Configuration) -> some View {
+        PressableBody(configuration: configuration, cornerRadius: cornerRadius, hoverFill: hoverFill)
+    }
+
+    private struct PressableBody: View {
+        let configuration: ButtonStyleConfiguration
+        let cornerRadius: CGFloat
+        let hoverFill: Bool
+        @State private var hovering = false
+        @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+        var body: some View {
+            configuration.label
+                .background(
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                        .fill(Color.primary.opacity(configuration.isPressed ? 0.09 : (hovering && hoverFill ? 0.05 : 0)))
+                )
+                .scaleEffect(configuration.isPressed && !reduceMotion ? 0.97 : 1)
+                .animation(reduceMotion ? nil : Motion.press, value: configuration.isPressed)
+                .onHover { h in withAnimation(Motion.fade) { hovering = h } }
+        }
+    }
+}
+
+extension View {
+    /// Springs a value change unless the user asked for reduced motion.
+    func springy<V: Equatable>(_ value: V, _ animation: Animation = Motion.value) -> some View {
+        modifier(SpringyModifier(value: value, animation: animation))
+    }
+}
+
+private struct SpringyModifier<V: Equatable>: ViewModifier {
+    var value: V
+    var animation: Animation
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    func body(content: Content) -> some View { content.animation(reduceMotion ? nil : animation, value: value) }
+}
+
 // MARK: - Building blocks
 
 struct Panel<Content: View, Accessory: View>: View {
@@ -252,7 +308,8 @@ struct BigNumber: View {
     var color: Color = .primary
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text(value).font(.system(size: 30, weight: .semibold, design: .rounded)).monospacedDigit().foregroundStyle(color)
+            Text(value).font(.system(size: 30, weight: .semibold, design: .rounded)).monospacedDigit().tracking(-0.6)
+                .foregroundStyle(color)
             Text(caption).font(.caption).foregroundStyle(.secondary)
         }
     }

@@ -238,7 +238,8 @@ struct DropdownView: View {
                 Image(systemName: metric.icon).font(.title3).foregroundStyle(accent)
                 Text(metric.title).font(.headline)
                 Spacer()
-                Text(headline(s)).font(.system(.title3, design: .rounded).weight(.semibold)).monospacedDigit()
+                Text(headline(s)).font(.system(.title3, design: .rounded).weight(.semibold)).monospacedDigit().tracking(-0.3)
+                    
             }
             ForEach(DropBlock.ordered()) { block in
                 switch block {
@@ -343,9 +344,10 @@ struct DropdownView: View {
                         Spacer()
                         Text(v).monospacedDigit().foregroundStyle(.secondary)
                     }
+                    .padding(.vertical, 2).padding(.horizontal, 4)
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(PressableStyle(cornerRadius: 6))
             }
         }
     }

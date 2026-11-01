@@ -184,7 +184,10 @@ flowchart LR
 - **Fan helper** (`Sources/KestrelHelper`). See [SECURITY.md](SECURITY.md).
 
 Kestrel samples every 5 seconds with the window closed and every second while it's
-open.
+open. On an M4 Mac mini that costs about 1% of one core from the menu bar and about
+7% with the window open. Live readings deliberately don't animate; motion is kept
+for things you do (pressing, hovering, opening the inspector, switching sections),
+using critically damped springs that respect Reduce Motion.
 
 ## Privacy
 

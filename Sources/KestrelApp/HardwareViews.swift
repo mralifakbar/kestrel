@@ -53,9 +53,9 @@ struct OverviewView: View {
                 VStack(spacing: 14) {
                     Panel("Developer", icon: "hammer") {
                         HStack(spacing: 24) {
-                            Button { model.selection = .projects } label: { BigNumber(value: "\(model.holders.count)", caption: "Servers & ports") }.buttonStyle(.plain)
-                            Button { model.selection = .agents } label: { BigNumber(value: "\(model.agents.count)", caption: "Coding agents") }.buttonStyle(.plain)
-                            Button { model.selection = .containers } label: { BigNumber(value: "\(model.containers.filter { $0.state == "running" }.count)", caption: "Containers") }.buttonStyle(.plain)
+                            Button { model.selection = .projects } label: { BigNumber(value: "\(model.holders.count)", caption: "Servers & ports").padding(4) }.buttonStyle(PressableStyle())
+                            Button { model.selection = .agents } label: { BigNumber(value: "\(model.agents.count)", caption: "Coding agents").padding(4) }.buttonStyle(PressableStyle())
+                            Button { model.selection = .containers } label: { BigNumber(value: "\(model.containers.filter { $0.state == "running" }.count)", caption: "Containers").padding(4) }.buttonStyle(PressableStyle())
                         }
                         let idle = model.holders.filter(\.isIdle)
                         if !idle.isEmpty {
@@ -95,14 +95,15 @@ struct GaugeTile: View {
                     .frame(width: 62, height: 62)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(title).font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-                        Text(text).font(.system(size: 20, weight: .semibold, design: .rounded)).monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
+                        Text(text).font(.system(size: 20, weight: .semibold, design: .rounded)).monospacedDigit().tracking(-0.4).lineLimit(1).minimumScaleFactor(0.7)
+                            
                         Text(sub).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
                     }
                     Spacer(minLength: 0)
                 }
             }
         }
-        .buttonStyle(.plain)
+        .buttonStyle(PressableStyle(cornerRadius: 14, hoverFill: false))
     }
 }
 

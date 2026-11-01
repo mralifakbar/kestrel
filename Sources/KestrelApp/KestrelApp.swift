@@ -46,7 +46,11 @@ enum WindowOpener {
                 .environmentObject(AppModel.shared)
                 .environmentObject(AudioController.shared)
                 .frame(minWidth: 920, minHeight: 600))
+            // Don't recompute the window's size limits on every SwiftUI update (very costly
+            // with a live dashboard); the limits are fixed, so set them once.
+            host.sizingOptions = []
             let w = NSWindow(contentViewController: host)
+            w.contentMinSize = NSSize(width: 920, height: 600)
             w.title = "Kestrel"
             w.identifier = NSUserInterfaceItemIdentifier("main")
             w.styleMask = [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView]

@@ -29,6 +29,8 @@ First public release.
 - Per-metric and per-app history in a local SQLite file with configurable retention.
 - `kestrel` CLI and MCP server.
 - Share image export, palettes, compact layout, unit options, English and Bahasa Indonesia.
+- Press and hover feedback, critically damped springs for panels and sections, a
+  translucent live-readings strip, and support for Reduce Motion and Reduce Transparency.
 
 [Unreleased]: https://github.com/mralifakbar/kestrel/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/mralifakbar/kestrel/releases/tag/v0.1.0

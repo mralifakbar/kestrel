@@ -7,6 +7,7 @@ struct AppsView: View {
     @State private var search = ""
     @State private var showSystem = true
     @State private var sortOrder = [KeyPathComparator(\AppUsage.cpu, order: .reverse)]
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var rows: [AppUsage] {
         model.snapshot.apps
@@ -52,9 +53,12 @@ struct AppsView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 10))
 
                 if let id = model.selectedAppID, let app = model.snapshot.apps.first(where: { $0.id == id }) {
+                    // Enters from the trailing edge and leaves the same way.
                     AppDetailPanel(app: app).frame(width: 360)
+                        .transition(.move(edge: .trailing).combined(with: .opacity))
                 }
             }
+            .animation(reduceMotion ? Motion.fade : Motion.panel, value: model.selectedAppID)
         }
         .sheet(item: Binding(get: { model.inspectedPID.map { PIDBox(pid: $0) } }, set: { model.inspectedPID = $0?.pid })) { box in
             ProcessInspectorSheet(pid: box.pid)
@@ -99,6 +103,8 @@ struct AppDetailPanel: View {
                 }
                 Spacer()
                 Menu { AppActions(app: app) } label: { Image(systemName: "ellipsis.circle") }.menuStyle(.borderlessButton).frame(width: 30)
+                Button { model.selectedAppID = nil } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary) }
+                    .buttonStyle(.borderless).help("Close").keyboardShortcut(.cancelAction)
             }
             FigureGrid(items: [("CPU", Fmt.cpu(app.cpu, cores: model.cores), Theme.color(.cpu)), ("Memory", Fmt.bytes(app.memory), Theme.color(.memory)),
                                ("Processes", "\(app.processCount)", nil), ("Disk", Fmt.rate(app.diskTotal), Theme.color(.diskRead)),
@@ -127,7 +133,7 @@ struct AppDetailPanel: View {
                             .padding(.vertical, 3).padding(.horizontal, 4)
                             .contentShape(Rectangle())
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(PressableStyle(cornerRadius: 5))
                     }
                 }
             }

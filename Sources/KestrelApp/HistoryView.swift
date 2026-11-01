@@ -96,10 +96,10 @@ struct HistoryView: View {
                             }
                             .font(.callout.monospacedDigit())
                             .padding(.vertical, 3).padding(.horizontal, 6)
-                            .background(RoundedRectangle(cornerRadius: 6).fill(state.appID == a.id ? Color.accentColor.opacity(0.15) : .clear))
+                            .background(RoundedRectangle(cornerRadius: 6, style: .continuous).fill(state.appID == a.id ? Color.accentColor.opacity(0.15) : .clear))
                             .contentShape(Rectangle())
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(PressableStyle(cornerRadius: 6))
                     }
                 }
                 .frame(width: 400)

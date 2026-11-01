@@ -6,6 +6,7 @@ struct MainView: View {
     @AppStorage("sectionOrder") private var sectionOrder = ""
     @AppStorage("hiddenSections") private var hiddenSections = ""
     @AppStorage("compact") private var compact = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var visibleSections: [Section] { LayoutPrefs.windowSections(order: sectionOrder, hidden: hiddenSections) }
 
@@ -24,16 +25,16 @@ struct MainView: View {
             .navigationSplitViewColumnWidth(min: 190, ideal: 210, max: 260)
             .safeAreaInset(edge: .bottom) { SidebarFooter() }
         } detail: {
-            VStack(spacing: 0) {
-                LiveStrip()
-                Divider()
-                ScrollView {
-                    detail(for: model.selection ?? .overview)
-                        .padding(compact ? 12 : 20)
-                        .frame(maxWidth: .infinity, alignment: .topLeading)
-                }
-                .id(model.selection)
+            // Content scrolls underneath the translucent strip of live readings.
+            ScrollView {
+                detail(for: model.selection ?? .overview)
+                    .padding(compact ? 12 : 20)
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
             }
+            .id(model.selection)
+            .transition(.opacity)
+            .animation(reduceMotion ? nil : Motion.fade, value: model.selection)
+            .safeAreaInset(edge: .top, spacing: 0) { LiveStrip() }
             .navigationTitle((model.selection ?? .overview).plainTitle)
             .toolbar {
                 ToolbarItemGroup(placement: .primaryAction) {
@@ -130,6 +131,7 @@ struct SidebarFooter: View {
 /// Always-visible strip of live readings along the top of the window.
 struct LiveStrip: View {
     @EnvironmentObject var model: AppModel
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     var body: some View {
         let s = model.snapshot
         HStack(spacing: 0) {
@@ -147,7 +149,14 @@ struct LiveStrip: View {
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 6)
-        .background(.bar)
+        .background {
+            if reduceTransparency { Color(nsColor: .windowBackgroundColor) } else { Rectangle().fill(.bar) }
+        }
+        .overlay(alignment: .bottom) {
+            // A soft edge instead of a hard divider.
+            LinearGradient(colors: [Color.primary.opacity(0.06), .clear], startPoint: .top, endPoint: .bottom)
+                .frame(height: 6).offset(y: 6).allowsHitTesting(false)
+        }
     }
 
     func chip(_ section: Section, _ label: String, _ value: String, _ values: [Double], _ color: Color, _ maxV: Double?, strained: Bool) -> some View {
@@ -156,6 +165,7 @@ struct LiveStrip: View {
                 VStack(alignment: .leading, spacing: 0) {
                     Text(label).font(.system(size: 9, weight: .bold)).tracking(0.8).foregroundStyle(.secondary)
                     Text(value).font(.system(size: 12, weight: .semibold, design: .rounded)).monospacedDigit().lineLimit(1)
+
                         .foregroundStyle(strained ? Theme.strain : .primary)
                         .fixedSize()
                 }
@@ -163,10 +173,10 @@ struct LiveStrip: View {
                     .frame(minWidth: 18, maxWidth: 44).frame(height: 20)
             }
             .padding(.horizontal, 8).padding(.vertical, 4)
-            .background(RoundedRectangle(cornerRadius: 8).fill(model.selection == section ? Color.accentColor.opacity(0.12) : .clear))
+            .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(model.selection == section ? Color.accentColor.opacity(0.14) : .clear))
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(PressableStyle())
         .frame(maxWidth: .infinity)
     }
 }
@@ -197,9 +207,10 @@ struct AppsBehind: View {
                             Meter(value: fraction(a), color: color, height: 5).frame(width: 90)
                             Text(value(a)).monospacedDigit().frame(width: 84, alignment: .trailing)
                         }
+                        .padding(.vertical, 2).padding(.horizontal, 4)
                         .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(PressableStyle(cornerRadius: 6))
                 }
             }
         }
@@ -211,7 +222,7 @@ struct SectionHeader: View {
     var subtitle: String
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(title).font(.system(size: 22, weight: .bold, design: .rounded))
+            Text(title).font(.system(size: 22, weight: .bold, design: .rounded)).tracking(-0.4)
             Text(subtitle).font(.callout).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
