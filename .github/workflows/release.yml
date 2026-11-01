@@ -1,0 +1,50 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Test
+        run: swift test
+
+      - name: Build universal app
+        run: VERSION="${GITHUB_REF_NAME#v}" ./build.sh --universal --zip
+
+      - name: Checksum
+        working-directory: build
+        run: shasum -a 256 Kestrel-*.zip | tee SHA256SUMS.txt
+
+      - name: Release notes from CHANGELOG.md
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v v="[$version]" '/^## \[/ { p = index($0, v) > 0; next } /^\[[^]]+\]: / { p = 0 } p' CHANGELOG.md > notes.md
+          {
+            echo
+            echo "### Install"
+            echo
+            echo "Unzip, move **Kestrel.app** to /Applications, then right-click › Open the first time (the app is not notarized)."
+            echo
+            echo "SHA-256:"
+            echo '```'
+            cat build/SHA256SUMS.txt
+            echo '```'
+          } >> notes.md
+          cat notes.md
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" build/Kestrel-*.zip build/SHA256SUMS.txt \
+            --title "Kestrel ${GITHUB_REF_NAME#v}" --notes-file notes.md --verify-tag
