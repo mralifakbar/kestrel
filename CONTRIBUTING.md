@@ -82,5 +82,6 @@ already stores; never ask the user to paste a token.
 
 1. Move the **Unreleased** notes in `CHANGELOG.md` under a new version heading.
 2. Tag and push: `git tag v0.2.0 && git push origin v0.2.0`.
-3. The release workflow builds the universal app, zips it and publishes a GitHub
-   release with the changelog section as notes.
+3. The release workflow builds the universal app, signs it with the Developer ID,
+   notarizes it, zips it and publishes a GitHub release with the changelog section as
+   notes.

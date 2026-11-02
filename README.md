@@ -24,19 +24,19 @@ that are actually eating your Mac. No Electron, no account, no telemetry.
 
 ### Everything about the hardware
 
-- **CPU** — user, system, idle, load averages, and every performance and efficiency core.
-- **Memory** — app, wired, compressed, cached, free, swap and memory pressure.
-- **GPU and Neural Engine** — utilization, renderer/tiler, GPU memory, ANE power and
+- **CPU.** User, system, idle, load averages, and every performance and efficiency core.
+- **Memory.** App, wired, compressed, cached, free, swap and memory pressure.
+- **GPU and Neural Engine.** Utilization, renderer/tiler, GPU memory, ANE power and
   memory read/write traffic, read from Apple silicon's own power counters.
-- **Disk** — read/write throughput and operations, free space on every volume.
-- **Network** — download/upload in total and per interface, with addresses.
-- **Power and battery** — CPU, GPU, ANE and DRAM power, whole-system watts, charge,
+- **Disk.** Read/write throughput and operations, free space on every volume.
+- **Network.** Download/upload in total and per interface, with addresses.
+- **Power and battery.** CPU, GPU, ANE and DRAM power, whole-system watts, charge,
   time remaining, power draw, health, cycle count and temperature. It also lists
   what's draining power and what's keeping your Mac awake.
-- **Temperatures and fans** — CPU and GPU temperature, every SMC sensor, fan speed,
+- **Temperatures and fans.** CPU and GPU temperature, every SMC sensor, fan speed,
   and manual fan control through a small optional helper.
-- **Sound** — output and microphone volume, device switching, and per-app volume and mute.
-- **Bluetooth** — battery levels for keyboards, mice, trackpads and AirPods (left, right, case).
+- **Sound.** Output and microphone volume, device switching, and per-app volume and mute.
+- **Bluetooth.** Battery levels for keyboards, mice, trackpads and AirPods (left, right, case).
 
 ### Apps, not 1,000 processes
 
@@ -49,18 +49,18 @@ ports and child processes. Copy it, save it as CSV, or get it from `kestrel proc
 
 ### Built for developers
 
-- **Projects** — dev servers and the ports they hold, grouped by project folder.
+- **Projects.** Dev servers and the ports they hold, grouped by project folder.
   Idle servers are flagged and can be stopped in one go. Every stop asks first.
-- **Agents** — running Claude Code, Codex, Gemini CLI, Aider, OpenCode, Cursor Agent,
+- **Agents.** Running Claude Code, Codex, Gemini CLI, Aider, OpenCode, Cursor Agent,
   GitHub Copilot CLI, Amp, Kiro and Goose sessions, whether each is working or
   waiting, and everything it started. Quitting a session quits its whole tree.
-- **AI usage limits** — remaining quota, reset times and pace for Claude, Codex,
+- **AI usage limits.** Remaining quota, reset times and pace for Claude, Codex,
   Copilot and Cursor, plus tokens used today and this week. Off until you turn it on.
-- **Containers** — per-container CPU, memory, network and ports, grouped by Compose
+- **Containers.** Per-container CPU, memory, network and ports, grouped by Compose
   project, with start/stop/restart.
-- **MCP server** — lets Claude, Codex and Cursor ask Kestrel what's going on. Off by
+- **MCP server.** Lets Claude, Codex and Cursor ask Kestrel what's going on. Off by
   default, and any request to quit something shows a confirmation in the app.
-- **`kestrel` CLI** — `status`, `top`, `ports`, `agents`, `limits`, `process`,
+- **`kestrel` CLI.** `status`, `top`, `ports`, `agents`, `limits`, `process`,
   `containers`, `history`, `stop --idle`, as a table or `--json`.
 
 ### Menu bar, alerts and history
@@ -76,7 +76,7 @@ ports and child processes. Copy it, save it as CSV, or get it from `kestrel proc
 ### Make it yours
 
 Reorder or hide sections in the window and the dropdown. Celsius or Fahrenheit,
-bytes or bits, CPU per core or per Mac. Colorful, monochrome or colour-blind-safe
+bytes or bits, CPU per core or per Mac. Colorful, monochrome or color-blind-safe
 palettes and a compact layout. Export a 1200×630 share image in light or dark, or
 copy the dashboard as text. Optional Dock icon. English and Bahasa Indonesia,
 following your Mac's language.
@@ -102,11 +102,9 @@ following your Mac's language.
 Releases are signed with a Developer ID and notarized by Apple, so macOS opens them
 without a warning.
 
-Kestrel lives in the menu bar. Click any reading, then **Open Kestrel** for the window.
-
 ### Build from source
 
-Requires macOS 15 or later and Xcode 16 or later.
+Requires macOS 15 or later and Xcode 16 or later (Swift 6).
 
 ```sh
 git clone https://github.com/mralifakbar/kestrel.git
@@ -115,12 +113,17 @@ cd kestrel
 ```
 
 `./build.sh --universal --zip` builds what releases ship: an arm64 + x86_64 app and
-a zip. Set `KESTREL_SIGN_IDENTITY="Apple Development: …"` to sign with your own
-certificate, so macOS remembers the audio and notification permissions across rebuilds.
-With a `Developer ID Application` certificate, `scripts/notarize.sh build/Kestrel.app`
-notarizes the result the way releases are.
+a zip. Local builds are signed ad-hoc. Set `KESTREL_SIGN_IDENTITY="Apple Development: …"`
+to sign with your own certificate, so macOS remembers the audio and notification
+permissions across rebuilds. With a `Developer ID Application` certificate,
+`scripts/notarize.sh build/Kestrel.app` notarizes the result the way releases are.
 
-## Command line
+## Usage
+
+Kestrel lives in the menu bar. Click any reading for its figures and the apps behind
+it, then **Open Kestrel** for the window.
+
+### Command line
 
 Settings › Integrations › **Install `kestrel` command** links the CLI into your
 `PATH`. It's also at `Kestrel.app/Contents/Helpers/kestrel`.
