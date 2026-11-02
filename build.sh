@@ -9,6 +9,7 @@
 # The version comes from $VERSION, else the latest git tag, else 0.1.0.
 # Set KESTREL_SIGN_IDENTITY (e.g. "Apple Development: …") to sign with a real
 # certificate, so macOS keeps audio and notification permissions across rebuilds.
+# Releases use a Developer ID Application certificate and scripts/notarize.sh.
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -55,10 +56,13 @@ fi
 cp build/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 
 IDENTITY="${KESTREL_SIGN_IDENTITY:--}"
+SIGN=(--force --options runtime --sign "$IDENTITY")
+# Notarization needs a secure timestamp on every binary; ad-hoc signatures can't have one.
+[ "$IDENTITY" = "-" ] || SIGN+=(--timestamp)
 for f in "$APP/Contents/Helpers/kestrel" "$APP/Contents/MacOS/KestrelHelper"; do
-    codesign --force --options runtime --sign "$IDENTITY" "$f"
+    codesign "${SIGN[@]}" "$f"
 done
-codesign --force --options runtime --entitlements Resources/Kestrel.entitlements --sign "$IDENTITY" "$APP"
+codesign "${SIGN[@]}" --entitlements Resources/Kestrel.entitlements "$APP"
 echo "Built $APP $VERSION ($(lipo -archs "$APP/Contents/MacOS/Kestrel"), $(du -sh "$APP" | cut -f1), signed: $IDENTITY)"
 
 if [ "$ZIP" = 1 ]; then

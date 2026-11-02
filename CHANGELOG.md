@@ -6,6 +6,15 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-03
+
+### Changed
+
+- Releases are signed with a Developer ID and notarized by Apple, so macOS opens
+  Kestrel without a warning. Coming from 0.1.0, which was signed ad-hoc, macOS asks
+  for the audio and notification permissions once more.
+- `scripts/notarize.sh` notarizes and staples a signed build.
+
 ## [0.1.0] - 2026-11-01
 
 First public release.
@@ -32,5 +41,6 @@ First public release.
 - Press and hover feedback, critically damped springs for panels and sections, a
   translucent live-readings strip, and support for Reduce Motion and Reduce Transparency.
 
-[Unreleased]: https://github.com/mralifakbar/kestrel/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/mralifakbar/kestrel/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/mralifakbar/kestrel/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/mralifakbar/kestrel/releases/tag/v0.1.0

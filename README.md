@@ -97,13 +97,10 @@ following your Mac's language.
 ### Download
 
 1. Grab `Kestrel-x.y.z.zip` from the [latest release](https://github.com/mralifakbar/kestrel/releases/latest).
-2. Unzip it and move **Kestrel.app** to `/Applications`.
-3. The app is ad-hoc signed, not notarized, so the first time macOS will block it.
-   Right-click the app and choose **Open**, or run:
+2. Unzip it, move **Kestrel.app** to `/Applications` and open it.
 
-   ```sh
-   xattr -dr com.apple.quarantine /Applications/Kestrel.app
-   ```
+Releases are signed with a Developer ID and notarized by Apple, so macOS opens them
+without a warning.
 
 Kestrel lives in the menu bar. Click any reading, then **Open Kestrel** for the window.
 
@@ -120,6 +117,8 @@ cd kestrel
 `./build.sh --universal --zip` builds what releases ship: an arm64 + x86_64 app and
 a zip. Set `KESTREL_SIGN_IDENTITY="Apple Development: …"` to sign with your own
 certificate, so macOS remembers the audio and notification permissions across rebuilds.
+With a `Developer ID Application` certificate, `scripts/notarize.sh build/Kestrel.app`
+notarizes the result the way releases are.
 
 ## Command line
 

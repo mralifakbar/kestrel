@@ -56,5 +56,6 @@ read when needed and never written anywhere.
   could swap it before you approve the prompt.
 - **The helper socket is world-writable** (mode `0666`), so any local process can ask
   it to change fan speeds within the fan's limits. It can't do anything else.
-- **Release builds are ad-hoc signed and not notarized.** Check the SHA-256 on the
-  release page, or build from source.
+- **Release builds are signed with a Developer ID (team 5583X832TP) and notarized by
+  Apple.** Run `codesign -dv` on the app to see the team, and check the SHA-256 on the
+  release page.
