@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-06
+
 ### Changed
 
 - A new look shared with Panefold: dashboard cards sit on soft surfaces with plain
@@ -51,6 +53,7 @@ First public release.
 - Press and hover feedback, critically damped springs for panels and sections, a
   translucent live-readings strip, and support for Reduce Motion and Reduce Transparency.
 
-[Unreleased]: https://github.com/mralifakbar/kestrel/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/mralifakbar/kestrel/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/mralifakbar/kestrel/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/mralifakbar/kestrel/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/mralifakbar/kestrel/releases/tag/v0.1.0
