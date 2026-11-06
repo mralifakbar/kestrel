@@ -10,7 +10,6 @@ A native macOS system monitor for the menu bar. CPU, memory, GPU, Neural Engine,
 power, temperatures and fans, plus the dev servers, coding agents and containers
 that are actually eating your Mac. No Electron, no account, no telemetry.
 
-[![CI](https://github.com/mralifakbar/kestrel/actions/workflows/ci.yml/badge.svg)](https://github.com/mralifakbar/kestrel/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/mralifakbar/kestrel?sort=semver)](https://github.com/mralifakbar/kestrel/releases/latest)
 ![macOS 15+](https://img.shields.io/badge/macOS-15%2B-black?logo=apple)
 ![Swift 6](https://img.shields.io/badge/Swift-6-F05138?logo=swift&logoColor=white)

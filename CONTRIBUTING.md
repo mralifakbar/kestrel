@@ -71,7 +71,8 @@ already stores; never ask the user to paste a token.
 ## Pull requests
 
 - Keep each PR focused on one thing, and describe what changed and how you tested it.
-- `swift test` must pass. CI runs it on every PR, along with a universal release build.
+- `./scripts/ci.sh` must pass: unit tests, a universal build and a smoke test. There's
+  no hosted CI, so run it on your Mac before opening the PR.
 - Watch the cost: Kestrel runs all day. Check `ps -o %cpu -p $(pgrep -x Kestrel)`
   with the window open and closed before and after your change.
 - Follow the style of the code around you: 4-space indent, small types, comments that
@@ -81,7 +82,11 @@ already stores; never ask the user to paste a token.
 ## Releasing (maintainers)
 
 1. Move the **Unreleased** notes in `CHANGELOG.md` under a new version heading.
-2. Tag and push: `git tag v0.2.0 && git push origin v0.2.0`.
-3. The release workflow builds the universal app, signs it with the Developer ID,
-   notarizes it, zips it and publishes a GitHub release with the changelog section as
-   notes.
+2. Commit, then run `./scripts/release.sh 0.2.0` on your Mac. There is no hosted CI:
+   the script checks everything first, then runs the tests, builds the universal app
+   signed with the Developer ID, notarizes and staples it, pushes `main` and the
+   `v0.2.0` tag, and publishes the GitHub release with the zip, its SHA-256 and the
+   changelog section as notes.
+3. Once per Mac: the Developer ID Application certificate in the keychain, notarization
+   credentials saved with `xcrun notarytool store-credentials notary …` (see the top of
+   `scripts/notarize.sh`), and `gh auth login`.
