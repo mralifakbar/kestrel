@@ -264,3 +264,15 @@
 "Mem read" = "Baca mem";
 "Mem write" = "Tulis mem";
 "Camera" = "Kamera";
+"Search settings" = "Cari pengaturan";
+"Dock, login, units, colors" = "Dock, login, satuan, warna";
+"Readings in the menu bar" = "Pembacaan di bar menu";
+"Sections and the dropdown" = "Bagian dan dropdown";
+"When to send a notification" = "Kapan notifikasi dikirim";
+"AI limits, MCP, command line" = "Batas AI, MCP, baris perintah";
+"Retention, fan helper" = "Masa simpan, helper kipas";
+"Under strain" = "Terbebani";
+"%@ is using the most right now." = "%@ paling banyak memakai saat ini.";
+"Show App" = "Tampilkan Aplikasi";
+"Quit Kestrel" = "Keluar dari Kestrel";
+"Elevated" = "Meningkat";

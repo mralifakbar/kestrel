@@ -50,7 +50,7 @@ struct AppsView: View {
                     if let id = ids.first, let a = model.snapshot.apps.first(where: { $0.id == id }) { AppActions(app: a) }
                 }
                 .frame(minHeight: 520)
-                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .clipShape(RoundedRectangle(cornerRadius: Theme.cardRadius))
 
                 if let id = model.selectedAppID, let app = model.snapshot.apps.first(where: { $0.id == id }) {
                     // Enters from the trailing edge and leaves the same way.

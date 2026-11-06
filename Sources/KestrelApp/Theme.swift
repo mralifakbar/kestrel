@@ -121,8 +121,31 @@ private struct SpringyModifier<V: Equatable>: ViewModifier {
     func body(content: Content) -> some View { content.animation(reduceMotion ? nil : animation, value: value) }
 }
 
+// MARK: - House style
+
+/// Kestrel shares its look with Panefold: soft cards with no border or shadow, `.headline`
+/// section labels in secondary, rows with a caption under the title, keycaps for shortcuts.
+extension Theme {
+    static let cardRadius: CGFloat = 12
+    static let cardFill = Color.primary.opacity(0.04)
+    /// Big readings: system font, tabular digits so a ticking value doesn't jitter.
+    static func number(_ size: CGFloat, weight: Font.Weight = .semibold) -> Font {
+        .system(size: size, weight: weight).monospacedDigit()
+    }
+}
+
+extension View {
+    /// The soft card every group of content sits on.
+    func softCard(padding: CGFloat = 14) -> some View {
+        self.padding(padding)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: Theme.cardRadius).fill(Theme.cardFill))
+    }
+}
+
 // MARK: - Building blocks
 
+/// A dashboard card: optional label and accessory on top, content below.
 struct Panel<Content: View, Accessory: View>: View {
     var title: LocalizedStringKey?
     var icon: String?
@@ -138,24 +161,119 @@ struct Panel<Content: View, Accessory: View>: View {
         VStack(alignment: .leading, spacing: compact ? 8 : 12) {
             if title != nil || !(accessory is EmptyView) {
                 HStack(spacing: 6) {
-                    if let icon { Image(systemName: icon).font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary) }
-                    if let title { Text(title).font(.system(size: 11, weight: .semibold)).textCase(.uppercase).tracking(0.6).foregroundStyle(.secondary) }
+                    if let icon { Image(systemName: icon).font(.subheadline).foregroundStyle(.secondary).frame(width: 16) }
+                    if let title { Text(title).font(.headline).foregroundStyle(.secondary) }
                     Spacer()
                     accessory
                 }
             }
             content
         }
-        .padding(compact ? 10 : 16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color(nsColor: .controlBackgroundColor).opacity(0.7))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(Color.primary.opacity(0.07), lineWidth: 1)
-        )
+        .softCard(padding: compact ? 10 : 14)
+    }
+}
+
+/// A titled group of settings rows on a soft card.
+struct Section2<Content: View>: View {
+    var title: LocalizedStringKey?
+    @ViewBuilder var content: Content
+
+    init(_ title: LocalizedStringKey? = nil, @ViewBuilder content: () -> Content) {
+        self.title = title; self.content = content()
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            if let title { Text(title).font(.headline).foregroundStyle(.secondary) }
+            VStack(alignment: .leading, spacing: 12) { content }.softCard()
+        }
+        .padding(.bottom, 22)
+    }
+}
+
+/// A setting: title, an optional caption under it, and the control trailing.
+struct SettingRow<Control: View>: View {
+    var title: Text
+    var detail: Text?
+    @ViewBuilder var control: Control
+
+    init(_ title: LocalizedStringKey, detail: LocalizedStringKey? = nil, @ViewBuilder control: () -> Control) {
+        self.title = Text(title); self.detail = detail.map { Text($0) }; self.control = control()
+    }
+
+    /// For titles that were never localized (provider names, formatted values).
+    init(verbatim title: String, detail: LocalizedStringKey? = nil, @ViewBuilder control: () -> Control) {
+        self.title = Text(verbatim: title); self.detail = detail.map { Text($0) }; self.control = control()
+    }
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline) {
+            VStack(alignment: .leading, spacing: 2) {
+                title
+                if let detail { detail.font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true) }
+            }
+            Spacer(minLength: 16)
+            control
+        }
+    }
+}
+
+/// A key combination drawn like keycaps.
+struct KeyCaps: View {
+    let text: String
+    var body: some View {
+        Text(verbatim: text)
+            .font(.system(size: 11, weight: .medium, design: .rounded))
+            .padding(.horizontal, 5).padding(.vertical, 1)
+            .background(RoundedRectangle(cornerRadius: 4).fill(Color.primary.opacity(0.08)))
+            .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(Color.primary.opacity(0.12)))
+    }
+}
+
+struct StatusDot: View {
+    let color: Color
+    var body: some View { Circle().fill(color).frame(width: 8, height: 8) }
+}
+
+/// A tinted card for something that needs attention.
+struct ActionCard: View {
+    let symbol: String
+    let tint: Color
+    let text: String
+    var button: LocalizedStringKey?
+    var action: () -> Void = {}
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: symbol).foregroundStyle(tint).font(.title3)
+            VStack(alignment: .leading, spacing: 6) {
+                Text(verbatim: text).font(.callout).fixedSize(horizontal: false, vertical: true)
+                if let button { Button(button, action: action).controlSize(.small).buttonStyle(.borderedProminent) }
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(10)
+        .background(RoundedRectangle(cornerRadius: 10).fill(tint.opacity(0.1)))
+    }
+}
+
+/// A plain full-width row in the menu bar panel: a title and, trailing, its shortcut.
+struct MenuRow: View {
+    let title: LocalizedStringKey
+    var keys: String?
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                Text(title)
+                Spacer()
+                if let keys { KeyCaps(text: keys) }
+            }
+            .padding(.vertical, 3).padding(.horizontal, 4)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PressableStyle(cornerRadius: 6))
     }
 }
 
@@ -277,7 +395,7 @@ struct Figure: View {
                 if let color { Circle().fill(color).frame(width: 7, height: 7) }
                 Text(label).font(.caption).foregroundStyle(.secondary)
             }
-            Text(value).font(.system(.body, design: .rounded).weight(.semibold)).monospacedDigit()
+            Text(value).font(.body.weight(.semibold).monospacedDigit())
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -308,7 +426,7 @@ struct BigNumber: View {
     var color: Color = .primary
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text(value).font(.system(size: 30, weight: .semibold, design: .rounded)).monospacedDigit().tracking(-0.6)
+            Text(value).font(Theme.number(28))
                 .foregroundStyle(color)
             Text(caption).font(.caption).foregroundStyle(.secondary)
         }

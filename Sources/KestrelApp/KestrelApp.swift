@@ -69,12 +69,19 @@ enum WindowOpener {
     static func openSettings() {
         NSApp.activate(ignoringOtherApps: true)
         if settings == nil {
-            let host = NSHostingController(rootView: SettingsView().environmentObject(AppModel.shared))
+            let host = NSHostingController(rootView: SettingsView()
+                .environmentObject(AppModel.shared)
+                .frame(minWidth: 720, minHeight: 480))
+            host.sizingOptions = []
             let w = NSWindow(contentViewController: host)
             w.title = String(localized: "Kestrel Settings")
-            w.styleMask = [.titled, .closable]
+            w.styleMask = [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView]
+            w.titlebarAppearsTransparent = true
+            w.contentMinSize = NSSize(width: 720, height: 480)
             w.isReleasedWhenClosed = false
+            w.setContentSize(NSSize(width: 820, height: 600))
             w.center()
+            w.setFrameAutosaveName("KestrelSettings")
             settings = w
         }
         settings?.makeKeyAndOrderFront(nil)

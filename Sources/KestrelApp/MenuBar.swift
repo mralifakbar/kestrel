@@ -23,6 +23,17 @@ enum BarMetric: String, CaseIterable, Identifiable {
         case .disk: .disk; case .temperature: .thermals; case .power, .battery: .power
         }
     }
+    /// When the reading turns red in the menu bar.
+    func isStrained(_ s: SystemSnapshot) -> Bool {
+        switch self {
+        case .cpu: s.cpu.total >= 0.9
+        case .memory: s.memory.pressureLevel >= 4
+        case .gpu: s.gpu.utilization >= 0.95
+        case .temperature: s.thermals.cpuC >= 95
+        case .battery: s.battery.present && s.battery.percent < 0.1 && !s.battery.isPluggedIn
+        case .neural, .network, .disk, .power: false
+        }
+    }
     var icon: String {
         switch self {
         case .cpu: "cpu"; case .memory: "memorychip"; case .gpu: "rectangle.3.group"; case .neural: "brain"; case .network: "network"
@@ -131,19 +142,19 @@ final class MenuBarController: NSObject {
     private func reading(_ m: BarMetric, _ s: SystemSnapshot) -> Reading {
         let ser = { (k: String) in Array((self.model.series[k]?.values ?? []).suffix(20)) }
         switch m {
-        case .cpu: return Reading(lines: [Fmt.percent(s.cpu.total)], series: ser("cpu"), max: 1, strained: s.cpu.total >= 0.9)
-        case .memory: return Reading(lines: [Fmt.percent(s.memory.usedFraction)], series: ser("mem_pressure"), max: 1, strained: s.memory.pressureLevel >= 4)
-        case .gpu: return Reading(lines: [Fmt.percent(s.gpu.utilization)], series: ser("gpu"), max: 1, strained: s.gpu.utilization >= 0.95)
+        case .cpu: return Reading(lines: [Fmt.percent(s.cpu.total)], series: ser("cpu"), max: 1, strained: m.isStrained(s))
+        case .memory: return Reading(lines: [Fmt.percent(s.memory.usedFraction)], series: ser("mem_pressure"), max: 1, strained: m.isStrained(s))
+        case .gpu: return Reading(lines: [Fmt.percent(s.gpu.utilization)], series: ser("gpu"), max: 1, strained: m.isStrained(s))
         case .neural: return Reading(lines: [s.power.aneWatts > 0.01 ? Fmt.watts(s.power.aneWatts) : "idle"], series: ser("ane_w"), max: nil, strained: false)
         case .network: return Reading(lines: ["↓" + Fmt.compactRate(s.network.inBps), "↑" + Fmt.compactRate(s.network.outBps)], series: ser("net_in"), secondary: ser("net_out"), max: nil, strained: false)
         case .disk: return Reading(lines: ["R " + Fmt.compactRate(s.disk.readBps), "W " + Fmt.compactRate(s.disk.writeBps)], series: ser("disk_read"), secondary: ser("disk_write"), max: nil, strained: false)
-        case .temperature: return Reading(lines: [Fmt.temp(s.thermals.cpuC)], series: ser("temp_cpu"), max: 110, strained: s.thermals.cpuC >= 95)
+        case .temperature: return Reading(lines: [Fmt.temp(s.thermals.cpuC)], series: ser("temp_cpu"), max: 110, strained: m.isStrained(s))
         case .power:
             let w = s.power.systemWatts > 0 ? s.power.systemWatts : (s.battery.present ? max(s.battery.powerDrawW, 0) : s.power.packageWatts)
             return Reading(lines: [String(format: w >= 10 ? "%.0fW" : "%.1fW", w)], series: ser("sys_w"), max: nil, strained: false)
         case .battery:
             guard s.battery.present else { return Reading(lines: ["AC"], series: [], max: 1, strained: false) }
-            return Reading(lines: [Fmt.percent(s.battery.percent) + (s.battery.isCharging ? "⚡︎" : "")], series: ser("battery"), max: 1, strained: s.battery.percent < 0.1 && !s.battery.isPluggedIn)
+            return Reading(lines: [Fmt.percent(s.battery.percent) + (s.battery.isCharging ? "⚡︎" : "")], series: ser("battery"), max: 1, strained: m.isStrained(s))
         }
     }
 }
@@ -234,13 +245,9 @@ struct DropdownView: View {
     var body: some View {
         let s = model.snapshot
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: metric.icon).font(.title3).foregroundStyle(accent)
-                Text(metric.title).font(.headline)
-                Spacer()
-                Text(headline(s)).font(.system(.title3, design: .rounded).weight(.semibold)).monospacedDigit().tracking(-0.3)
-                    
-            }
+            header(s)
+            card(s)
+            Divider()
             ForEach(DropBlock.ordered()) { block in
                 switch block {
                 case .graph: graph.frame(height: 56)
@@ -250,16 +257,57 @@ struct DropdownView: View {
                 }
             }
             Divider()
-            HStack {
-                Button { close(); model.open(section: metric.section) } label: { Label("Open Kestrel", systemImage: "macwindow") }
-                Spacer()
-                Button { close(); WindowOpener.openSettings() } label: { Image(systemName: "gearshape") }.help("Settings")
-                Button { NSApp.terminate(nil) } label: { Image(systemName: "power") }.help("Quit Kestrel")
+            VStack(alignment: .leading, spacing: 0) {
+                MenuRow(title: "Open Kestrel", keys: "⌘0") { close(); model.open(section: metric.section) }
+                    .keyboardShortcut("0", modifiers: .command)
+                MenuRow(title: "Settings…", keys: "⌘,") { close(); WindowOpener.openSettings() }
+                    .keyboardShortcut(",", modifiers: .command)
+                MenuRow(title: "Quit Kestrel", keys: "⌘Q") { NSApp.terminate(nil) }
+                    .keyboardShortcut("q", modifiers: .command)
             }
-            .buttonStyle(.borderless)
+            .padding(.horizontal, -4)
         }
         .padding(14)
         .frame(width: 340)
+    }
+
+    /// Red when the menu bar item is, orange on the way there (same steps as `Theme.level`).
+    private func status(_ s: SystemSnapshot) -> (Color, LocalizedStringKey) {
+        if metric.isStrained(s) { return (Theme.strain, "Under strain") }
+        let elevated = switch metric {
+        case .cpu: s.cpu.total >= 0.75
+        case .gpu: s.gpu.utilization >= 0.75
+        case .memory: s.memory.pressureLevel >= 2
+        default: false
+        }
+        return elevated ? (Theme.warn, "Elevated") : (Theme.good, "Normal")
+    }
+
+    private func header(_ s: SystemSnapshot) -> some View {
+        let strained = metric.isStrained(s)
+        let (color, text) = status(s)
+        return HStack(spacing: 10) {
+            Image(nsImage: NSApp.applicationIconImage).resizable().frame(width: 28, height: 28)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(metric.title).font(.headline)
+                HStack(spacing: 6) {
+                    StatusDot(color: color)
+                    Text(text).font(.caption).foregroundStyle(.secondary)
+                }
+            }
+            Spacer()
+            Text(headline(s)).font(.title3.weight(.semibold).monospacedDigit()).foregroundStyle(strained ? Theme.strain : .primary)
+        }
+    }
+
+    /// Under strain, point at the app most behind it.
+    @ViewBuilder private func card(_ s: SystemSnapshot) -> some View {
+        if metric.isStrained(s), let top = appList(s).first?.0 {
+            ActionCard(symbol: "exclamationmark.triangle.fill", tint: Theme.strain,
+                       text: String(localized: "\(top.name) is using the most right now."), button: "Show App") {
+                close(); model.open(section: .apps, app: top.id)
+            }
+        }
     }
 
     var accent: Color {
@@ -324,16 +372,18 @@ struct DropdownView: View {
         }
     }
 
+    func appList(_ s: SystemSnapshot) -> [(AppUsage, String)] {
+        switch metric {
+        case .memory: return s.apps.sorted { $0.memory > $1.memory }.prefix(5).map { ($0, Fmt.bytes($0.memory)) }
+        case .network: return s.apps.filter { $0.netTotal > 0 }.sorted { $0.netTotal > $1.netTotal }.prefix(5).map { ($0, Fmt.rate($0.netTotal)) }
+        case .disk: return s.apps.filter { $0.diskTotal > 0 }.sorted { $0.diskTotal > $1.diskTotal }.prefix(5).map { ($0, Fmt.rate($0.diskTotal)) }
+        case .power, .battery, .gpu, .neural: return s.apps.sorted { $0.energy > $1.energy }.prefix(5).map { ($0, Fmt.watts($0.energy)) }
+        default: return s.apps.prefix(5).map { ($0, Fmt.cpu($0.cpu, cores: s.cpu.coreCount)) }
+        }
+    }
+
     @ViewBuilder func apps(_ s: SystemSnapshot) -> some View {
-        let list: [(AppUsage, String)] = {
-            switch metric {
-            case .memory: return s.apps.sorted { $0.memory > $1.memory }.prefix(5).map { ($0, Fmt.bytes($0.memory)) }
-            case .network: return s.apps.filter { $0.netTotal > 0 }.sorted { $0.netTotal > $1.netTotal }.prefix(5).map { ($0, Fmt.rate($0.netTotal)) }
-            case .disk: return s.apps.filter { $0.diskTotal > 0 }.sorted { $0.diskTotal > $1.diskTotal }.prefix(5).map { ($0, Fmt.rate($0.diskTotal)) }
-            case .power, .battery, .gpu, .neural: return s.apps.sorted { $0.energy > $1.energy }.prefix(5).map { ($0, Fmt.watts($0.energy)) }
-            default: return s.apps.prefix(5).map { ($0, Fmt.cpu($0.cpu, cores: s.cpu.coreCount)) }
-            }
-        }()
+        let list = appList(s)
         VStack(alignment: .leading, spacing: 4) {
             Text("Apps").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
             ForEach(list, id: \.0.id) { a, v in
@@ -363,11 +413,11 @@ struct DropdownView: View {
 
     func mini(_ l: String, _ v: String) -> some View {
         VStack(spacing: 1) {
-            Text(l).font(.system(size: 8, weight: .bold)).foregroundStyle(.secondary)
+            Text(l).font(.caption2).foregroundStyle(.secondary)
             Text(v).font(.caption.monospacedDigit().weight(.semibold))
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 4)
-        .background(RoundedRectangle(cornerRadius: 6).fill(Color.primary.opacity(0.05)))
+        .padding(.vertical, 5)
+        .background(RoundedRectangle(cornerRadius: 8).fill(Theme.cardFill))
     }
 }

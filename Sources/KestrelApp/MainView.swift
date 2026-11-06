@@ -163,9 +163,8 @@ struct LiveStrip: View {
         Button { model.selection = section } label: {
             HStack(spacing: 8) {
                 VStack(alignment: .leading, spacing: 0) {
-                    Text(label).font(.system(size: 9, weight: .bold)).tracking(0.8).foregroundStyle(.secondary)
-                    Text(value).font(.system(size: 12, weight: .semibold, design: .rounded)).monospacedDigit().lineLimit(1)
-
+                    Text(label).font(.caption2.weight(.medium)).foregroundStyle(.secondary)
+                    Text(value).font(.callout.weight(.semibold).monospacedDigit()).lineLimit(1)
                         .foregroundStyle(strained ? Theme.strain : .primary)
                         .fixedSize()
                 }
@@ -222,7 +221,7 @@ struct SectionHeader: View {
     var subtitle: String
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(title).font(.system(size: 22, weight: .bold, design: .rounded)).tracking(-0.4)
+            Text(title).font(.largeTitle.bold())
             Text(subtitle).font(.callout).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)

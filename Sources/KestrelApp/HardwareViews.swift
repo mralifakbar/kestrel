@@ -90,20 +90,19 @@ struct GaugeTile: View {
                 HStack(spacing: 14) {
                     ZStack {
                         Ring(value: value, color: color, lineWidth: 8)
-                        Text(Fmt.percent(value)).font(.system(size: 12, weight: .bold, design: .rounded)).monospacedDigit()
+                        Text(Fmt.percent(value)).font(Theme.number(12))
                     }
                     .frame(width: 62, height: 62)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(title).font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-                        Text(text).font(.system(size: 20, weight: .semibold, design: .rounded)).monospacedDigit().tracking(-0.4).lineLimit(1).minimumScaleFactor(0.7)
-                            
+                        Text(title).font(.headline).foregroundStyle(.secondary)
+                        Text(text).font(Theme.number(20)).lineLimit(1).minimumScaleFactor(0.7)
                         Text(sub).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
                     }
                     Spacer(minLength: 0)
                 }
             }
         }
-        .buttonStyle(PressableStyle(cornerRadius: 14, hoverFill: false))
+        .buttonStyle(PressableStyle(cornerRadius: Theme.cardRadius, hoverFill: false))
     }
 }
 

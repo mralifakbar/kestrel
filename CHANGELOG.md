@@ -6,6 +6,16 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- A new look shared with Panefold: dashboard cards sit on soft surfaces with plain
+  section labels, page titles are larger, and numbers use the system font.
+- Settings is one window with a searchable sidebar; each page groups its settings
+  on cards with a short explanation under each one.
+- The menu bar dropdown has a header with the reading's status, a card naming the
+  busiest app when a reading is under strain, and Open, Settings and Quit rows with
+  their shortcuts.
+
 ## [0.1.1] - 2026-11-03
 
 ### Changed
