@@ -51,7 +51,7 @@ Tests/KestrelCoreTests/
 ```
 
 **KestrelCore imports no SwiftUI.** That is what makes it testable, and it is what lets
-the CLI and the MCP server exist at all — they link Core without the app. If you find
+the CLI and the MCP server exist at all: they link Core without the app. If you find
 yourself wanting `@Published` or `Color` in Core, the type belongs in `KestrelApp`, or
 the value belongs in `Models.swift` as plain data and the app decides how to draw it.
 
@@ -130,7 +130,7 @@ sensible point.
 ## Style and hygiene
 
 - Follow the code around you: 4-space indent, small types, comments that explain *why*
-  rather than restating the line. The existing comments are the standard — match them.
+  rather than restating the line. The existing comments are the standard, so match them.
 - One PR, one thing. Say what changed and how you tested it.
 - Update `CHANGELOG.md` under **Unreleased**, in the voice of the existing entries:
   what the user now sees, not what you refactored.
